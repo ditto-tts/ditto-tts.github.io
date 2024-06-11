@@ -347,7 +347,6 @@ function divBuilderAnime(id, data) {
     cards[i]
       .querySelectorAll(".ditto-sample-box table tr")
       .forEach((elm, idx) => {
-        elm.removeChild(elm.children[4]);
         elm.removeChild(elm.children[3]);
         elm.removeChild(elm.children[2]);
         elm.removeChild(elm.children[1]);
