@@ -1,4 +1,4 @@
-# Demo page for DiTTo-TTS
+# Official Demo Page for DiTTo-TTS
 
 in python3, run the following:
 
