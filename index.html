@@ -1,0 +1,1565 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.88.1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="asset/ditto.ico" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,700"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link rel="stylesheet" href="css/custom.css" />
+    <link rel="stylesheet" href="css/normalize.css" />
+
+    <title>DiTTo-TTS</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="stylesheet" href="css/main.css" />
+    <script src="js/main.js" defer></script>
+  </head>
+
+  <body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+    <div class="container">
+      <header role="banner"></header>
+      <main role="main">
+        <article itemscope="" itemtype="https://schema.org/BlogPosting">
+          <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+            <div class="text-center">
+              <h1>DiTTo-TTS:</h1>
+              <h3>
+
+                Efficient and Scalable <span
+                  style="font-weight: 760">T</span>ext-<span
+                  style="font-weight: 760">to</span>-<span
+                  style="font-weight: 760">S</span>peech
+                with <span style="font-weight: 760">Di</span>ffusion <span
+                  style="font-weight: 760">T</span>ransformer
+
+              </h3>
+              <!-- <p class="lead fw-bold">
+                |<span
+                  style="padding: .375rem .75rem; font-size: 1rem;">OpenReview</span>|
+              </p> -->
+              <p class="links">
+                <a target="_blank" href="https://openreview.net/forum?id=ClEKY8kZ92&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DNeurIPS.cc%2F2024%2FConference%2FAuthors%23your-submissions)">OpenReview</a>
+              </p>
+            </div>
+            <p>
+              <b>Abstract.</b>
+              Diffusion models have achieved remarkable success as powerful generative models across
+              various modalities, including images, videos, and audio. However, applying these models
+              to text-to-speech (TTS) presents challenges due to the need for precise temporal alignment
+              between text and speech. This work introduces a latent diffusion model designed for TTS,
+              integrating pre-trained text and speech encoders without relying on domain-specific factors
+              such as phoneme and duration modeling. Specifically, we adopt the Diffusion Transformer
+              (<b>DiT</b>) <b>to TTS</b> with three key improvements: the architectural enhancement
+              of DiT for TTS, the development of a speech length predictor, and the reinforcement of text-speech
+              alignment through the injection of semantic guidance into speech representation. We also scale
+              the training dataset to 82K hours and the model size to 790M parameters, demonstrating robust
+              scalability with increasing data and model sizes. Extensive experiments show that the proposed
+              method not only simplifies the training process but also yields zero-shot performance that is
+              superior or comparable to state-of-the-art TTS models in terms of naturalness, intelligibility,
+              and speaker similarity.
+            </p>
+          </div>
+
+          <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+            <h2 id="model-overview" style="text-align: center">
+              Model Overview
+            </h2>
+
+            <p style="text-align: center">
+              <img src="asset/thisis9.png" height="200" width="800"
+                class="img-fluid" />
+            </p>
+
+            <p>
+              <b>An overview of DiTTo-TTS</b>. (<i>middle</i>) The LDM backbone is trained to
+              denoise a span-masked noisy segment given its contextual counterpart, without utilizing
+              phoneme and phoneme-level duration (see <b>Section 3.1</b>).
+              (<i>left</i>) The inner structure of the DiT block incorporates multi-head cross-attention
+              with global AdaLN (see <b>Section 3.3</b>).
+              (<i>right</i>)The speech length predictor is based on causal transformer blocks (see <b>Section 3.2</b>).
+              Both DiT blocks and the speech length predictor employ cross-attention to condition on text representation.
+              Additionally, DiT blocks utilize AdaLN with the mean-pooled text embedding.
+              '<b>+</b>' denotes addition, and '<b>c</b>' represents concatenation.
+              '<b>text</b>' in sky blue oval represents the embedding from text encoder.
+              The red line indicates a long skip connection between the states before and after the DiT blocks.
+              The effectiveness of our design choices is demonstrated in our architecture search (see <b>Section 6.1</b>).
+            </p>
+          </div>
+
+          <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#librispeech-box"
+                type="button"
+                role="tab"
+              >
+                LibriSpeech
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#mls-box"
+                type="button"
+                role="tab"
+              >
+                Multilingual
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active"
+                data-bs-toggle="tab"
+                data-bs-target="#celeb-box"
+                type="button"
+                role="tab"
+              >
+                Celebrities
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#anime-box"
+                type="button"
+                role="tab"
+              >
+                Anime Characters
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#robustness-box"
+                type="button"
+                role="tab"
+              >
+                Robustness
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#speech-diversity-box"
+                type="button"
+                role="tab"
+              >
+                Speech Diversity
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#speech-rate-contrl-box"
+                type="button"
+                role="tab"
+              >
+                Speech Rate Controllability
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#compare-box"
+                type="button"
+                role="tab"
+              >
+                Comparison
+              </button>
+            </li>
+          </ul>
+          <div class="tab-content" id="myTabContent">
+            <div
+              id="librispeech-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="librispeech" style="text-align: center">
+                Zero-Shot TTS (LibriSpeech)
+              </h2>
+              <p>
+                Through in-context learning, DiTTo-TTS produces speech using a
+                reference audio and its corresponding text. We represent
+                <span style="color: #8fbddf; font-weight: bold"
+                  >the prompt in blue</span
+                >, and
+                <span style="color: #9fde83; font-weight: bold"
+                  >the generated audio in green</span
+                >. The resulting speech closely resembles the reference in
+                voice, background noise, and speaking style. When dividing
+                prompts into 3-second segments, the audio boundaries may not
+                always end in silence and could sometimes cut off words midway.
+                For further details, please see <b>English-only Evaluation</b> part in <b>Section 5.1</b> of our paper.
+                When you click on "Show baselines", you can see the ground truth
+                and baseline audio, etc. YourTTS, Vall-E, and CLaM-TTS audios are brought
+                from YourTTS demo<sup><a href="#footnote1-1">1</a></sup>,
+                 Vall-E demo<sup><a href="#footnote1-2">2</a></sup
+                >, and CLaM-TTS demo<sup><a href="#footnote1-3">3</a></sup
+                  > respectively.
+              </p>
+            </div>
+            <div
+              id="mls-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="mls" style="text-align: center">
+                Zero-Shot TTS (Multilingual LibriSpeech)
+              </h2>
+              <p>
+                We represent
+                <span style="color: #8fbddf; font-weight: bold"
+                  >the prompt in blue</span
+                >, and
+                <span style="color: #9fde83; font-weight: bold"
+                  >the generated audio in green</span
+                >. The resulting speech closely resembles the reference in
+                voice, background noise, and speaking style. When dividing
+                prompts into 3-second segments, the audio boundaries may not
+                always end in silence and could sometimes cut off words midway.
+                For further details, please see <b>Multilingual Evaluation</b> part in <b>Section 5.1</b> of our paper.
+                When you click on "Show baselines", you can see the ground truth
+                and baseline audio, etc. CLaM-TTS audios are brought from
+                CLaM-TTS demo<sup><a href="#footnote2-1">1</a></sup>.
+              </p>
+            </div>
+            <div
+              id="celeb-box"
+              role="tabpanel"
+              class="tab-pane fade show active container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="celeb" style="text-align: center">Celebrities</h2>
+              <p>
+                DiTTo-TTS is capable of replicating the voices and speech styles of well-known personalities.
+                We represent
+                <span style="color: #8fbddf; font-weight: bold"
+                  >the prompt in blue</span
+                >, and
+                <span style="color: #9fde83; font-weight: bold"
+                  >the generated audio in green</span
+                >. The resulting speech closely resembles the reference in
+                voice, background noise, and speaking style. When you click on
+                "Show baselines", you can see the ground truth and baseline
+                audio, etc. Texts corresponding to the generated audio and CLaM-TTS audios are brought from
+                CLaM-TTS demo<sup><a href="#footnote3-1">1</a></sup>.
+              </p>
+            </div>
+            <div
+              id="anime-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="anime" style="text-align: center">Anime Characters</h2>
+              <p>
+                DiTTo-TTS is capable of replicating the voices and speech styles of well-known anime characters.
+                We represent
+                <span style="color: #8fbddf; font-weight: bold"
+                  >the prompt in blue</span
+                >, and
+                <span style="color: #9fde83; font-weight: bold"
+                  >the generated audio in green</span
+                >. The resulting speech closely resembles the reference in
+                voice, background noise, and speaking style. When you click on
+                "Show baselines", you can see the ground truth and baseline
+                audio, etc. Texts corresponding to the generated audio and Mega-TTS audios are brought from
+                Mega-TTS demo<sup><a href="#footnote4-1">1</a></sup>.
+              </p>
+            </div>
+            <div
+              id="robustness-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="robustness" style="text-align: center">Robustness</h2>
+              <p>
+                DiTTo-TTS can generate robust speech, as demonstrated by its low WER.
+                Additionally, our model is capable of consistently producing a
+                '<b>whispering</b>' effect (please listen to the first sample).
+                Baseline samples are taken from the Mega-TTS demo<sup
+                  ><a href="#footnote5-1">1</a></sup
+                > and CLaM-TTS demo<sup
+                ><a href="#footnote5-2">2</a></sup
+              >.
+              </p>
+              <div class="card card-body ditto-card">
+                <div class="ditto-sample-box">
+                  <div class="table-responsive pt-3">
+                    <table class="table table-hover pt-2">
+                      <thead>
+                        <tr>
+                          <th
+                            style="
+                              width: 500px;
+                              max-width: 100%;
+                              text-align: center;
+                            "
+                          >
+                            Text
+                          </th>
+                          <th style="text-align: center">Mega-TTS</th>
+                          <th style="text-align: center">CLaM-TTS</th>
+                          <th style="text-align: center">DiTTo-TTS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td
+                            data-label="Text"
+                            rowspan="1"
+                            style="
+                              text-align: left;
+                              vertical-align: middle;
+                              max-width: 100%;
+                            "
+                          >
+                            Thursday, via a joint press release and Microsoft
+                            speech Blog, we will announce Microsoft’s continued
+                            partnership with Shell leveraging cloud, speech, and
+                            collaboration technology to drive industry
+                            innovation and transformation.
+                          </td>
+                          <td data-label="Mega-TTS" style="text-align: center">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              style="width: 140px"
+                            >
+                              <source src="audios/robust/1_mega.wav" autoplay />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </td>
+                          <td data-label="CLaM-TTS" style="text-align: center">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              style="width: 140px"
+                            >
+                              <source src="audios/robust/1_clam.wav" autoplay />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </td>
+                          <td data-label="DiTTo-TTS" style="text-align: center">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              style="width: 140px"
+                            >
+                              <source src="audios/robust/1_ours.wav" autoplay />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            data-label="Text"
+                            rowspan="1"
+                            style="
+                              text-align: left;
+                              vertical-align: middle;
+                              max-width: 100%;
+                            "
+                          >
+                            The great Greek grape growers grow great Greek
+                            grapes one one one.
+                          </td>
+                          <td data-label="Mega-TTS" style="text-align: center">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              style="width: 140px"
+                            >
+                              <source src="audios/robust/0_mega.wav" autoplay />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </td>
+                          <td data-label="CLaM-TTS" style="text-align: center">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              style="width: 140px"
+                            >
+                              <source src="audios/robust/0_clam.wav" autoplay />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </td>
+                          <td data-label="DiTTo-TTS" style="text-align: center">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              style="width: 140px"
+                            >
+                              <source src="audios/robust/0_ours.wav" autoplay />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <sup id="footnote5-1">1</sup
+              ><a href="https://mega-tts.github.io/demo-page/"
+                >https://mega-tts.github.io/demo-page/</a
+              ><br>
+              <sup id="footnote5-2">2</sup
+              ><a href="https://clam-tts.github.io/"
+                >https://clam-tts.github.io/</a
+              >
+            </div>
+
+            <div
+              id="speech-diversity-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="speech-diversity" style="text-align: center">
+                Speech Diversity
+              </h2>
+              <p>
+                DiTTo-TTS can synthesize speech with diverse <b>prosody and timbre</b>,
+                and even <b>environmental background sounds</b>, from <b>various speakers</b>
+                when generated without a prompt. First three text scripts are from Gigaspeech
+                test set, and the last four are brought from
+                Vall-E demo<sup><a href="#footnote6-1">1</a></sup>.
+              </p>
+              <div class="card card-body ditto-card">
+                <div class="ditto-sample-box">
+                  <div class="table-responsive pt-3">
+                    <table class="table table-hover pt-2">
+                      <thead>
+                        <tr>
+                          <th>Text</th>
+                          <th>Sample #1</th>
+                          <th>Sample #2</th>
+                          <th>Sample #3</th>
+                          <th>Sample #4</th>
+                          <th>Sample #5</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td data-label="Text">
+                            so it’s really for us. it’s kind of like the ah
+                            political, social headquarters or center for our
+                            community.
+                          </td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/so_it_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/so_it_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/so_it_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/so_it_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/so_it_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Text">
+                            provided it’s evidence evidence-based and rigorous
+                            but, also, i believe, fair.
+                          </td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/provi_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/provi_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/provi_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/provi_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/provi_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Text">
+                            now you you've been with the office in Northern
+                            Ireland for ten years.
+                          </td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/now_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/now_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/now_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/now_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/now_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Text">
+                            Number ten, fresh nelly is waiting on you, good
+                            night husband.
+                          </td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Numbe_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Numbe_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Numbe_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Numbe_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Numbe_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Text">Because we do not need it.</td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Becau_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Becau_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Becau_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Becau_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/Becau_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Text">
+                            I must do something about it.
+                          </td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/I_mus_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/I_mus_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/I_mus_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/I_mus_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/I_mus_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Text">He has not been named.</td>
+                          <td data-label="Sample #1">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/He_ha_000.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #2">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/He_ha_001.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #3">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/He_ha_002.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #4">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/He_ha_003.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Sample #5">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speaker_diversity/He_ha_004.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <sup id="footnote6-1">1</sup
+              ><a
+                href="https://www.microsoft.com/en-us/research/project/vall-e-x/vall-e/"
+                >https://www.microsoft.com/en-us/research/project/vall-e-x/vall-e/</a
+              >
+            </div>
+            <div
+              id="speech-rate-contrl-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="speech-rate-contrl" style="text-align: center">Speech Rate Controllability</h2>
+              <p>
+                DiTTo-TTS can synthesize the same text into audio of varying lengths.
+                This variable-length modeling allows for speech rate control by adjusting
+                the total duration of the generated speech, as shown in the following
+                mel-spectrogram. The speech rate decreases from top to bottom.
+                For more details, refer to <b>Section 6.1</b> of our paper.
+              </p>
+              <p style="text-align: center">
+                <img src="asset/speech_rate_control.png" height="400" width="600"
+                  class="img-fluid" />
+              </p>
+              <div class="card card-body ditto-card">
+                <div class="ditto-sample-box">
+                  <div class="table-responsive pt-3">
+                    <table class="table table-hover pt-2">
+                      <thead>
+                        <tr>
+                          <th>Text</th>
+                          <th>Length of Latent Audio</th>
+                          <th>Sample</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td data-label="Text" rowspan="4">But to those who knew her well, it was a symbol of <br> her unwavering determination and spirit.</td>
+                          <td data-label="Length">38</td>
+                          <td data-label="Sample">
+                            <audio controls="controls" preload="none" src="audios/speech_rate/speech_rate_control_0.wav"></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Length">43</td>
+                          <td data-label="Sample">
+                            <audio controls="controls" preload="none" src="audios/speech_rate/speech_rate_control_1.wav"></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Length">53</td>
+                          <td data-label="Sample">
+                            <audio controls="controls" preload="none" src="audios/speech_rate/speech_rate_control_2.wav"></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Length">63</td>
+                          <td data-label="Sample">
+                            <audio controls="controls" preload="none" src="audios/speech_rate/speech_rate_control_3.wav"></audio>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              id="compare-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="compare" style="text-align: center">Comparison with Zero-Shot Samples and Demo Cases</h2>
+              <p>
+                We provide some comparison samples to compare DiTTo-TTS with four baseline models.
+                To generate samples from Simple-TTS, we use
+                <a href="https://github.com/asappresearch/simple-tts">the official checkpoints</a>
+                and the text scripts from LibriSpeech test-clean subset. For the other three,
+                E3-TTS, NaturalSpeech 3, and Voicebox, we download the audio samples from the
+                demo pages of each baseline and then compare them with the audio generated by
+                our model without any resampling. Demos for each model can be found at their respective links:
+                <a href="https://e3tts.github.io/">E3-TTS</a>,
+                <a href="https://speechresearch.github.io/naturalspeech3/">NaturalSpeech 3</a>, and
+                <a href="https://voicebox.metademolab.com/zs_tts.html">Voicebox</a>.
+                Please refer to <b>Section 5.1</b> and <b>Appendix 8.7</b> of our
+                paper for more details about subjective evaluation.
+                The details of each baseline can be found in <b>Appendix 8.2</b> of our paper.
+              </p>
+              <div class="table-responsive pt-3">
+                <!-- <h3 style="text-align: center">Simple-TTS</h3> -->
+                <table class="table table-hover pt-2">
+                  <thead>
+                    <tr>
+                      <th style="text-align: center">Text</th>
+                      <th style="text-align: center">Prompt</th>
+                      <th style="text-align: center">Simple-TTS (24 kHz)</th>
+                      <th style="text-align: center">DiTTo-TTS (22.05 kHz)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        do not therefore think that the gothic school is an easy one</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/1188-133604-0014_wav_p_0_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/1188-133604-0014_wav_p_0.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/simpletts/1188-133604-0014_wav_p_0_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        did ever anybody see the like screamed missus poyser running towards the table when her eye had fallen on the blue stream</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/2094-142345-0029_wav_p_2_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/2094-142345-0029_wav_p_2.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/simpletts/2094-142345-0029_wav_p_2_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        it is sold everywhere but for the last three weeks nobody will use any snuff but that sold at the civet cat</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/3729-6852-0029_wav_p_1_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/3729-6852-0029_wav_p_1.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/simpletts/3729-6852-0029_wav_p_1_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        and this was why kenneth and beth discovered him conversing with the young woman in the buggy</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/6829-68771-0006_wav_p_1_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/simpletts/6829-68771-0006_wav_p_1.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/simpletts/6829-68771-0006_wav_p_1_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-responsive pt-3">
+                <!-- <h3 style="text-align: center">E3-TTS</h3> -->
+                <table class="table table-hover pt-2">
+                  <thead>
+                    <tr>
+                      <th style="text-align: center">Text</th>
+                      <th style="text-align: center">Prompt</th>
+                      <th style="text-align: center">E3-TTS (24 kHz)</th>
+                      <th style="text-align: center">DiTTo-TTS (22.05 kHz)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        She felt the force of the objections.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_02_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_02.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/e3tts/prompt_02_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        She can't get it out of her head, even after fifty years.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_03_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_03.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/e3tts/prompt_03_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        "I don't think so," replied Tom.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_13_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_13.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/e3tts/prompt_13_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        But at that moment the voice of the stranger was heard from the window.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_17_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/e3tts/prompt_17.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/e3tts/prompt_17_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio element.
+                        </audio></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-responsive pt-3">
+                <!-- <h3 style="text-align: center">NaturalSpeech 3</h3> -->
+                <table class="table table-hover pt-2">
+                  <thead>
+                    <tr>
+                      <th style="text-align: center">Text</th>
+                      <th style="text-align: center">Prompt</th>
+                      <th style="text-align: center">NaturalSpeech 3 (16 kHz)</th>
+                      <th style="text-align: center">DiTTo-TTS (22.05 kHz)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        They think you're proud because you've been away to school or something.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/ns3/1_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/1.wav"
+                            autoplay="">Your browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/1_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        There were only four stationers of any consequences in the town, and at each Holmes produced his pencil chips, and bid high for a duplicate.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/ns3/4_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/4.wav"
+                            autoplay="">Your browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/4_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        For, like as not, they must have thought him a prince when they saw his fine cap.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/ns3/a_2_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/a_2.wav"
+                            autoplay="">Your browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/a_2_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        The strong position held by the Edison system under the strenuous competition that was already springing up was enormously improved by the introduction of the three wire system and it gave an immediate impetus to incandescent lighting.</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/ns3/a_4_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/a_4.wav"
+                            autoplay="">Your browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/ns3/a_4_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-responsive pt-3">
+                <!-- <h3 style="text-align: center">Voicebox</h3> -->
+                <table class="table table-hover pt-2">
+                  <thead>
+                    <tr>
+                      <th style="text-align: center">Text</th>
+                      <th style="text-align: center">Prompt</th>
+                      <th style="text-align: center">Voicebox (16 kHz)</th>
+                      <th style="text-align: center">DiTTo-TTS (22.05 kHz)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        He was in deep converse with the clerk and entered the hall holding him by the arm</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/voicebox/61-70970-0007_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/61-70970-0007.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/61-70970-0007_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        Number ten fresh nelly is waiting on you good night husband</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/voicebox/1089-134686-0004_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/1089-134686-0004.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/1089-134686-0004_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        Yea his honourable worship is within but he hath a godly minister or two with him and likewise a leech</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/voicebox/1221-135767-0014_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/1221-135767-0014.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/1221-135767-0014_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="text-align: left;vertical-align:middle;width: 300px">
+                        Thus did this humane and right minded father comfort his unhappy daughter and her mother embracing her again did all she could to soothe her feelings</td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source src="audios/comparison/voicebox/5639-40744-0020_wav_p.wav" autoplay="">Your
+                          browser
+                          does not support the audio element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/5639-40744-0020.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                      <td style="text-align: center"><audio controls="controls"
+                          style="width: 300px;">
+                          <source
+                            src="audios/comparison/voicebox/5639-40744-0020_ours.wav"
+                            autoplay="">Your
+                          browser does not support the audio
+                          element.
+                        </audio></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <br>
+              <br>
+              <h2 id="compare" style="text-align: center">Comparison with LibriSpeech Zero-Shot Demo Cases</h2>
+              <p>
+                Here are some comparison samples to evaluate DiTTo-TTS against four other baseline models:
+                Mega-TTS, NaturalSpeech 2, VALL-E, and CLaM-TTS. Our samples are downsampled to 16kHz for this section.
+                Demos for each model can be found at their respective links:
+                <a href="https://mega-tts.github.io/demo-page/">Mega-TTS</a>,
+                <a href="https://speechresearch.github.io/naturalspeech2/">NaturalSpeech 2</a>,
+                <a href="https://www.microsoft.com/en-us/research/project/vall-e-x/vall-e/">VALL-E</a>, and
+                <a href="https://clam-tts.github.io/">CLaM-TTS</a>.
+                The details of each baseline can be found in <b>Appendix 8.2</b> of our paper.
+              </p>
+                  <div class="table-responsive pt-3">
+                    <table class="table table-hover pt-2">
+                    <thead>
+                    <tr>
+                    <th style="text-align: center">Text</th>
+                    <th style="text-align: center">Prompt</th>
+                    <th style="text-align: center">Ground Truth</th>
+                    <th style="text-align: center">Mega-TTS</th>
+                    <th style="text-align: center">NaturalSpeech 2</th>
+                    <th style="text-align: center">VALL-E</th>
+                    <th style="text-align: center">CLaM-TTS</th>
+                    <th style="text-align: center">DiTTo-TTS</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                    <td style="text-align: left;vertical-align:middle;width: 500px">They moved thereafter cautiously about the hut groping before and about them to find something to show that Warrenton had fulfilled his mission.</td>
+                    <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/0.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/0.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                    <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                    <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/0.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/0.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/0.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">And lay me down in thy cold bed and leave my shining lot.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/1.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/1.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/1.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/1.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/1.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/1.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">Number ten, fresh nelly is waiting on you, good night husband.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/2.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/2.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/2.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/2.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/2.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">Yea, his honourable worship is within, but he hath a godly minister or two with him, and likewise a leech.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/megatts/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/3.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">Instead of shoes, the old man wore boots with turnover tops, and his blue coat had wide cuffs of gold braid.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/4.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/4.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/megatts/4.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/4.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/4.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/4.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">The army found the people in poverty and left them in comparative wealth.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/megatts/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/5.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">Thus did this humane and right minded father comfort his unhappy daughter, and her mother embracing her again, did all she could to soothe her feelings.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/6.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/6.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/6.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/6.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/6.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/6.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">He was in deep converse with the clerk and entered the hall holding him by the arm.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/7.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/7.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/megatts/7.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/valle/7.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/7.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/7.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">Indeed, there were only one or two strangers who could be admitted among the sisters without producing the same result.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/8.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/8.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/8.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/8.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/8.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">For if he's anywhere on the farm, we can send for him in a minute.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/9.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/9.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/9.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/9.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/9.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">Their piety would be like their names, like their faces, like their clothes, and it was idle for him to tell himself that their humble and contrite hearts it might be paid a far-richer tribute of devotion than his had ever been. A gift tenfold more acceptable than his elaborate adoration.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/10.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/10.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/10.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/10.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/10.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">The air and the earth are curiously mated and intermingled as if the one were the breath of the other.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/11.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/11.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/11.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/11.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/11.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">I had always known him to be restless in his manner, but on this particular occasion he was in such a state of uncontrollable agitation that it was clear something very unusual had occurred.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/12.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/12.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/12.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/12.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/12.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">His death in this conjuncture was a public misfortune.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/13.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/13.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/13.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/13.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/13.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">It is this that is of interest to theory of knowledge.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/14.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/14.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/14.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/14.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/14.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;vertical-align:middle;width: 500px">For a few miles, she followed the line hitherto presumably occupied by the coast of Algeria, but no land appeared to the south.</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/prompt/15.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/gt/15.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ns2/15.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center; font-size: 18px; line-height: 2.5; padding-top: 10px; padding-bottom: 10px;">&mdash;</td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/clam/15.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                      <td style="text-align: center"><audio controls="controls" style="width: 160px;"><source src="audios/librispeech_16kHz/ours/15.wav" autoplay="">Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                  </div>
+              </div>
+
+            </div>
+          </div>
+        </article>
+      </main>
+    </div>
+    <template id="prompt-template">
+      <div class="card card-body ditto-card">
+        <div>
+          <p class="ditto-prompt-text">
+            <strong>Prompt Text</strong>: <span></span>
+          </p>
+          <p class="ditto-text"><strong>Text</strong>: <span></span></p>
+        </div>
+        <div class="ditto-audioviz">
+          <canvas></canvas>
+          <audio controls=""></audio>
+        </div>
+        <div class="ditto-toggle">
+          <div class="show">
+            <i class="bi bi-arrow-down-square"></i>
+            Show baseline(s)
+          </div>
+          <div>
+            <i class="bi bi-arrow-up-square" style="margin-right: 6.34px"></i>
+            Hide baseline(s)
+          </div>
+        </div>
+        <div class="collapse multi-collapse ditto-sample-box">
+          <div class="table-responsive pt-3">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="border-right">Prompt (Unmodified)</th>
+                  <th>Ground Truth</th>
+                  <th>YourTTS</th>
+                  <th>Vall-E</th>
+                  <th>CLaM-TTS</th>
+                  <th>Mega-TTS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="border-right" data-label="Prompt (Unmodified)">
+                    <audio controls="controls" preload="none"></audio>
+                  </td>
+                  <td data-label="Ground Truth">
+                    <audio controls="controls" preload="none"></audio>
+                  </td>
+                  <td data-label="YourTTS">
+                    <audio controls="controls" preload="none"></audio>
+                  </td>
+                  <td data-label="Vall-E">
+                    <audio controls="controls" preload="none"></audio>
+                  </td>
+                  <td data-label="CLaM-TTS">
+                    <audio controls="controls" preload="none"></audio>
+                  </td>
+                  <td data-label="Mega-TTS">
+                    <audio controls="controls" preload="none"></audio>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </template>
+    <div id="fab" class="fab">
+      <a class="mainop" href="#myTab">
+        <i class="bi bi-arrow-bar-up"></i>
+      </a>
+    </div>
+  </body>
+</html>

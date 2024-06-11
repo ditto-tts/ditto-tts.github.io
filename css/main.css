@@ -1,0 +1,191 @@
+.affiliation {
+  font-style: italic;
+}
+.affiliation p {
+  font-weight: bold;
+  font-style: normal;
+}
+.affiliation a {
+  color: inherit;
+}
+
+.links a {
+  font-weight: bold;
+  background-color: #454545;
+  border-left: 1px;
+  border-radius: 290486px;
+  padding: 4px 12px;
+  text-decoration: none;
+  color: white;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.ditto-card {
+  margin-top: 16px;
+}
+
+.ditto-prompt-text {
+  color: #8fbddf;
+}
+.ditto-prompt-text > span {
+  color: #b9b9b9;
+}
+.ditto-text {
+  color: #9fde83;
+}
+.ditto-text > span {
+  color: black;
+}
+
+.ditto-audioviz {
+  display: flex;
+  align-items: safe center;
+  flex-direction: column;
+}
+.ditto-audioviz > canvas {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+.ditto-audioviz > canvas,
+.ditto-audioviz > audio {
+  width: 300px;
+  max-width: 100%;
+  height: 54px;
+}
+
+.ditto-toggle {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: end;
+}
+.ditto-toggle > div {
+  display: none;
+  width: fit-content;
+  cursor: pointer;
+  padding-bottom: 1px;
+}
+.ditto-toggle > div.show {
+  display: block;
+}
+.ditto-toggle > div.show:hover {
+  border-bottom: 1px solid black;
+  padding-bottom: 0px;
+}
+
+.ditto-sample-box table th,
+.ditto-sample-box table td {
+  text-align: center;
+}
+.ditto-sample-box table td audio {
+  width: 140px;
+  height: 54px;
+}
+#text-prompt-box .ditto-sample-box table > tbody > tr td:nth-child(1) {
+  text-align: right;
+  padding-right: 0px;
+}
+#text-prompt-box .ditto-sample-box table > tbody > tr td:nth-child(2) {
+  text-align: left;
+}
+
+#fab {
+  display: none;
+}
+#fab.show {
+  display: block;
+}
+.fab {
+  background-color: transparent;
+  height: 48px;
+  width: 48px;
+  border-radius: 24px;
+  transition: height 300ms;
+  transition-timing-function: ease;
+  position: fixed;
+  right: 25px;
+  bottom: 25px;
+  text-align: center;
+  overflow: hidden;
+  box-shadow:
+    0 3px 5px -1px rgba(0, 0, 0, 0.2),
+    0 6px 10px 0 rgba(0, 0, 0, 0.14),
+    0 1px 18px 0 rgba(0, 0, 0, 0.12);
+}
+
+@media (hover: hover) {
+  .fab:hover .mainop {
+    transform: rotate(360deg);
+  }
+}
+
+.mainop {
+  display: block;
+  margin: auto;
+  width: 48px;
+  height: 48px;
+  position: relative;
+  bottom: 0;
+  right: 0;
+  transition: transform 300ms;
+  background-color: #263953;
+  border-radius: 24px;
+  z-index: 6;
+}
+.mainop i {
+  position: relative;
+  top: 12px;
+  font-size: 24px;
+  color: #fff;
+  -webkit-text-stroke: 0.7px;
+}
+
+@media screen and (max-width: 992px) {
+  .ditto-sample-box table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    width: 85px;
+    text-align: left;
+  }
+
+  table thead {
+    display: none;
+  }
+
+  table tr {
+    border-top: 1px solid currentColor;
+  }
+
+  table td {
+    border-bottom: 1px solid #ddd;
+    display: block;
+    font-size: 0.8em;
+    text-align: right;
+  }
+  .ditto-sample-box table td.border-right {
+    border-right: none;
+    border-bottom: 1px outset #ccc;
+  }
+
+  .ditto-sample-box table td audio {
+    width: 300px;
+    max-width: 100%;
+  }
+
+  #text-prompt-box .ditto-sample-box table td::before {
+    width: 50px;
+  }
+  #text-prompt-box .ditto-sample-box table > tbody > tr {
+    display: flex;
+    flex-flow: wrap;
+  }
+  #text-prompt-box .ditto-sample-box table > tbody > tr td:nth-child(1) {
+    width: 50%;
+  }
+  #text-prompt-box .ditto-sample-box table > tbody > tr td:nth-child(2) {
+    width: 50%;
+  }
+}
