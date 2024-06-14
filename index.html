@@ -39,9 +39,9 @@
               <h1>DiTTo-TTS:</h1>
               <h3>
 
-                Efficient and Scalable <span
+                Efficient and Scalable Zero-Shot <span
                   style="font-weight: 760">T</span>ext-<span
-                  style="font-weight: 760">to</span>-<span
+                  style="font-weight: 760">t</span>o-<span
                   style="font-weight: 760">S</span>peech
                 with <span style="font-weight: 760">Di</span>ffusion <span
                   style="font-weight: 760">T</span>ransformer
@@ -57,20 +57,25 @@
             </div>
             <p>
               <b>Abstract.</b>
-              Diffusion models have achieved remarkable success as powerful generative models across
-              various modalities, including images, videos, and audio. However, applying these models
-              to text-to-speech (TTS) presents challenges due to the need for precise temporal alignment
-              between text and speech. This work introduces a latent diffusion model designed for TTS,
-              integrating pre-trained text and speech encoders without relying on domain-specific factors
-              such as phoneme and duration modeling. Specifically, we adopt the Diffusion Transformer
-              (<b>DiT</b>) <b>to TTS</b> with three key improvements: the architectural enhancement
-              of DiT for TTS, the development of a speech length predictor, and the reinforcement of text-speech
-              alignment through the injection of semantic guidance into speech representation. We also scale
-              the training dataset to 82K hours and the model size to 790M parameters, demonstrating robust
-              scalability with increasing data and model sizes. Extensive experiments show that the proposed
-              method not only simplifies the training process but also yields zero-shot performance that is
-              superior or comparable to state-of-the-art TTS models in terms of naturalness, intelligibility,
-              and speaker similarity.
+              Large-scale diffusion models have shown outstanding generative abilities
+              across multiple modalities including images, videos, and audio. However,
+              text-to-speech (TTS) systems typically involve domain-specific modeling
+              factors (e.g., phonemes and phoneme-level durations) to ensure precise
+              temporal alignments between text and speech, which hinders the efficiency
+              and scalability of diffusion models for TTS. In this work, we present an
+              efficient and scalable Diffusion Transformer (DiT) that utilizes off-the-shelf
+              pre-trained text and speech encoders. Our approach addresses the challenge
+              of text-speech alignment via cross-attention mechanisms with the prediction
+              of the total length of speech representations. To achieve this, we enhance
+              the DiT architecture to suit TTS and improve the alignment by incorporating
+              semantic guidance into the latent space of speech. We scale the training dataset
+              and the model size to 82K hours and 790M parameters, respectively. Our extensive
+              experiments demonstrate that the large-scale diffusion model for TTS without
+              domain-specific modeling not only simplifies the training pipeline but also
+              yields superior or comparable zero-shot performance to state-of-the-art TTS
+              models in terms of naturalness, intelligibility, and speaker similarity. Our
+              speech samples are available at
+              <a href="https://ditto-tts.github.io">https://ditto-tts.github.io</a>.
             </p>
           </div>
 
