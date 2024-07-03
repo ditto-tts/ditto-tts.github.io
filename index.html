@@ -187,6 +187,17 @@
               <button
                 class="nav-link"
                 data-bs-toggle="tab"
+                data-bs-target="#speech-editing-box"
+                type="button"
+                role="tab"
+              >
+                Speech Editing
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
                 data-bs-target="#compare-box"
                 type="button"
                 role="tab"
@@ -302,7 +313,7 @@
                 DiTTo-TTS can generate robust speech, as demonstrated by its low WER.
                 Additionally, our model is capable of consistently producing a
                 '<b>whispering</b>' effect (please listen to the first sample).
-                Baseline samples are taken from the Mega-TTS demo<sup
+                Baseline samples are taken from Mega-TTS demo<sup
                   ><a href="#footnote5-1">1</a></sup
                 > and CLaM-TTS demo<sup
                 ><a href="#footnote5-2">2</a></sup
@@ -816,6 +827,267 @@
                   </div>
                 </div>
               </div>
+            </div>
+            <div
+              id="speech-editing-box"
+              role="tabpanel"
+              class="tab-pane fade container pt-5 shadow p-5 mb-5 bg-white rounded"
+            >
+              <h2 id="speech-editing" style="text-align: center">
+                Speech Editing
+              </h2>
+              <p>
+                DiTTo-TTS is capable of correcting mispronounced words by editing generated speech contents,
+                without the need for the speaker to re-record the audio. The examples are brought from
+                Voicebox demo<sup><a href="#footnote7-1">1</a></sup> and
+                VoiceCraft demo<sup><a href="#footnote7-2">2</a></sup>.
+              </p>
+              <div class="card card-body ditto-card">
+                <div class="ditto-sample-box">
+                  <div class="table-responsive pt-3">
+                    <table class="table table-hover pt-2">
+                      <thead>
+                        <tr>
+                          <th>Original Text</th>
+                          <th>Original Audio</th>
+                          <th>Edited Text</th>
+                          <th>Voicebox<br>(16 kHz)</th>
+                          <th>VoiceCraft<br>(16 kHz)</th>
+                          <th>DiTTo-TTS<br>(22.05 kHz)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td data-label="Original Text">
+                            in zero weather in mid-winter when <b>the earth is frozen to a great depth below the surface</b> when in driving over the unpaved country roads they give forth a hard metallic road
+                          </td>
+                          <td data-label="Original Audio">
+                            <audio
+                            controls="controls"
+                            preload="none"
+                            src="audios/speech_editing/0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Edited Text">
+                            in zero weather in mid-winter when <b>jack frost has cast his icy spell upon the land</b> when in driving over the unpaved country roads they give forth a hard metallic road
+                          </td>
+                          <td data-label="Voicebox (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/0_0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="VoiceCraft (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/0_0_voicecraft.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="DiTTo-TTS (22.05 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/0_ditto_all.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Original Text">
+                            and especially as i am not very much up in latin myself he said the suit was on <b>an insurance policy</b> that he was defending on the ground of misinterpretations
+                          </td>
+                          <td data-label="Original Audio">
+                            <audio
+                            controls="controls"
+                            preload="none"
+                            src="audios/speech_editing/1.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Edited Text">
+                            and especially as i am not very much up in latin myself he said the suit was on <b>a classified treasure map</b> that he was defending on the ground of misinterpretations
+                          </td>
+                          <td data-label="Voicebox (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/1_0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="VoiceCraft (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/1_0_voicecraft.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="DiTTo-TTS (22.05 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/1_ditto_all.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Original Text">
+                            yet these petty operations incessantly continued in time surmount the greatest difficulties <b>mountains are elevated and oceans bounded</b> by the slender force of human beings
+                          </td>
+                          <td data-label="Original Audio">
+                            <audio
+                            controls="controls"
+                            preload="none"
+                            src="audios/speech_editing/2.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Edited Text">
+                            yet these petty operations incessantly continued in time surmount the greatest difficulties <b>vast challenges emerge and unexplored frontiers beckon</b> by the slender force of human beings
+                          </td>
+                          <td data-label="Voicebox (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/2_0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="VoiceCraft (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/2_0_voicecraft.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="DiTTo-TTS (22.05 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/2_ditto_all.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Original Text">
+                            will find himself completely at a loss on <b>occasions of common and constant recurrence</b> speculative ability is one thing and practical ability is another
+                          </td>
+                          <td data-label="Original Audio">
+                            <audio
+                            controls="controls"
+                            preload="none"
+                            src="audios/speech_editing/3.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Edited Text">
+                            will find himself completely at a loss on <b>rare and unpredictable circumstances</b> speculative ability is one thing and practical ability is another
+                          </td>
+                          <td data-label="Voicebox (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/3_0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="VoiceCraft (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/3_0_voicecraft.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="DiTTo-TTS (22.05 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/3_ditto_all.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Original Text">
+                            and <b>the carlsruhe</b> professor had to devise an ingenious apparatus which enabled him to bring the preparation at the required temperature on to the very plate of the microscope
+                          </td>
+                          <td data-label="Original Audio">
+                            <audio
+                            controls="controls"
+                            preload="none"
+                            src="audios/speech_editing/4.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Edited Text">
+                            and <b>the inventive</b> professor had to devise an ingenious apparatus which enabled him to bring the preparation at the required temperature on to the very plate of the microscope
+                          </td>
+                          <td data-label="Voicebox (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/4_0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="VoiceCraft (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/4_0_voicecraft.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="DiTTo-TTS (22.05 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/4_ditto_all.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td data-label="Original Text">
+                            this was george steers the son of a british naval captain and ship modeler who had become an american naval officer and was <b>the first man to take charge of the washington navy yard</b>
+                          </td>
+                          <td data-label="Original Audio">
+                            <audio
+                            controls="controls"
+                            preload="none"
+                            src="audios/speech_editing/5.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="Edited Text">
+                            this was george steers the son of a british naval captain and ship modeler who had become an american naval officer and was <b>entrusted with the prestigious role of overseeing the operations at the renowned naval headquarters</b>
+                          </td>
+                          <td data-label="Voicebox (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/5_0.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="VoiceCraft (16 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/5_0_voicecraft.wav"
+                            ></audio>
+                          </td>
+                          <td data-label="DiTTo-TTS (22.05 kHz)">
+                            <audio
+                              controls="controls"
+                              preload="none"
+                              src="audios/speech_editing/5_ditto_all.wav"
+                            ></audio>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <sup id="footnote7-1">1</sup
+              ><a
+                href="https://voicebox.metademolab.com/edit.html"
+                >https://voicebox.metademolab.com/edit.html</a
+              ><br>
+              <sup id="footnote7-2">2</sup
+              ><a
+                href="https://jasonppy.github.io/VoiceCraft_web/"
+                >https://jasonppy.github.io/VoiceCraft_web/</a
+              >
             </div>
             <div
               id="compare-box"
