@@ -1,0 +1,16 @@
+zs_emo_0_neutral_wav_p|Dogs are sitting by the door.
+zs_emo_0_neutral|Why fades the lotus of the water.
+zs_emo_1_happy_wav_p|Dogs are sitting by the door.
+zs_emo_1_happy|Why fades the lotus of the water.
+zs_emo_2_calm_wav_p|Dogs are sitting by the door.
+zs_emo_2_calm|Why fades the lotus of the water.
+zs_emo_3_sad_wav_p|Dogs are sitting by the door.
+zs_emo_3_sad|Why fades the lotus of the water.
+zs_emo_4_angry_wav_p|Dogs are sitting by the door.
+zs_emo_4_angry|Why fades the lotus of the water.
+zs_emo_5_fearful_wav_p|Dogs are sitting by the door.
+zs_emo_5_fearful|Why fades the lotus of the water.
+zs_emo_6_disgust_wav_p|Dogs are sitting by the door.
+zs_emo_6_disgust|Why fades the lotus of the water.
+zs_emo_7_surprised_wav_p|Dogs are sitting by the door.
+zs_emo_7_surprised|Why fades the lotus of the water.

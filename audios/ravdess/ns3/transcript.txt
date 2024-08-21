@@ -1,0 +1,16 @@
+rvd_bm_0_neutral_wav_p|Dogs are sitting by the door.
+rvd_bm_0_neutral|Kids are talking by the door.
+rvd_bm_1_happy_wav_p|Dogs are sitting by the door.
+rvd_bm_1_happy|Kids are talking by the door.
+rvd_bm_2_calm_wav_p|Dogs are sitting by the door.
+rvd_bm_2_calm|Kids are talking by the door.
+rvd_bm_3_sad_wav_p|Dogs are sitting by the door.
+rvd_bm_3_sad|Kids are talking by the door.
+rvd_bm_4_angry_wav_p|Dogs are sitting by the door.
+rvd_bm_4_angry|Kids are talking by the door.
+rvd_bm_5_fearful_wav_p|Dogs are sitting by the door.
+rvd_bm_5_fearful|Kids are talking by the door.
+rvd_bm_6_disgust_wav_p|Dogs are sitting by the door.
+rvd_bm_6_disgust|Kids are talking by the door.
+rvd_bm_7_surprised_wav_p|Dogs are sitting by the door.
+rvd_bm_7_surprised|Kids are talking by the door.
